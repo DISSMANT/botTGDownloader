@@ -65,7 +65,7 @@ class HttpFD(FileDownloader):
         ctx.is_resume = ctx.resume_len > 0
 
         count = 0
-        retries = self.params.get('retries', 0)
+        retries = self.params.get('retries', 7)
 
         class SucceedDownload(Exception):
             pass
