@@ -33,7 +33,7 @@ def download_youtube(url, quality):
     sound_params = all_params['formats'][0]
 
     video = HttpFD(params=params, ydl=YoutubeDL()).real_download(filename='C:/Users/Ghost/OneDrive/Рабочий стол/1.mp4',
-                                                                info_dict=params)
+                                                                 info_dict=params)
 
     sound = HttpFD(params=sound_params, ydl=YoutubeDL()).real_download(
         filename='C:/Users/Ghost/OneDrive/Рабочий стол/2.mp3',
@@ -44,6 +44,3 @@ def download_youtube(url, quality):
 
     final_clip = video.set_audio(audio)
     final_clip.write_videofile('final.mp4')
-
-
-print(os.getcwd())

@@ -1,9 +1,5 @@
-import os
-
-import telebot, logging
+import telebot
 from telebot.types import *
-import json
-import requests
 from download_yotube_video import download_youtube, YRLException
 
 logging.basicConfig(level=logging.INFO)
@@ -53,8 +49,6 @@ def callback_message(callback):
 def print_message(callback):
     pass
     # print(callback)
-
-# def get_youtube_vid(message):
 
 
 @bot.message_handler(content_types=['text'])
@@ -108,60 +102,5 @@ def how_many(message):
 
         create_choice_message(message)
 
-    # bot.delete_message(message.chat.id, message.message_id - 1)
-    # bot.delete_message(message.chat.id, message.message_id)
-    # global how, from_coin, to_coin
-    # how = message.text
-    # if from_coin != '':
-    #     data = requests.get(f"https://www.cbr-xml-daily.ru/daily_json.js")
-    #     data = json.loads(data.text)
-    #     try:
-    #         how = float(how)
-    #     except:
-    #         button = InlineKeyboardMarkup()
-    #         btn = InlineKeyboardButton("В начало", callback_data='start')
-    #         button.add(btn)
-    #         bot.send_photo(message.chat.id, InputFile("Screenshot_4.png"),caption="Введите целочисленные значния валют", reply_markup=button)
-    #         return
-    #     if from_coin == to_coin:
-    #         button = InlineKeyboardMarkup()
-    #         btn = InlineKeyboardButton("В начало", callback_data='start')
-    #         button.add(btn)
-    #         bot.send_photo(message.chat.id, InputFile("Screenshot_4.png"),caption="Введите разные валюты", reply_markup=button)
-    #         return
-    #     elif from_coin == "RUB":
-    #         kurs = data['Valute'][f"{to_coin}"]['Value']
-    #         res = float(how) / kurs
-    #     elif to_coin != "RUB":
-    #         kurs = data['Valute'][f"{from_coin}"]['Value']
-    #         res = float(how) * kurs
-    #         res = res / (data['Valute'][f"{to_coin}"]['Value'] / data['Valute'][to_coin]["Nominal"])
-    #     else:
-    #         kurs = data['Valute'][f"{from_coin}"]['Value'] / data['Valute'][from_coin]["Nominal"]
-    #         res = float(how) * kurs
-    #
-    #
-    #     button = InlineKeyboardMarkup()
-    #     btn1 = InlineKeyboardButton("Начать Сначала", callback_data='start')
-    #     button.add(btn1)
-    #     bot.send_photo(message.chat.id,InputFile("Screenshot_4.png"), caption=f"{how} <b>{from_coin}</b> в <b>{to_coin}</b> будет равно: \n"
-    #                                                                           f"➡️ {res} {to_coin}", parse_mode="html", reply_markup=button)
-    #     from_coin = ''
-    #     to_coin = ''
-    #
-    # else:
-    #     bot.delete_message(message.chat.id, message.message_id)
-    #     bot.send_message(message.chat.id, "Введите команду /start, чтобы начать")
 
-
-#
-# def result(message):
-#     global from_coin, to_coin
-#     button = InlineKeyboardMarkup()
-#     btn1 = InlineKeyboardButton("Назад", callback_data="to_coin_foo")
-#     btn2 = InlineKeyboardButton("Вернуться в начало", callback_data='start')
-#     button.row(btn1)
-#     button.row(btn2)
-#     bot.delete_message(message.chat.id, message.message_id)
-#     bot.send_photo(message.chat.id,InputFile("Screenshot_4.png"), caption=f"Введи количество валюты, которую хочешь конвертировать: \nТекущие валюты: {from_coin} -> {to_coin}", reply_markup=button)
-# bot.polling(none_stop=True)
+bot.polling(none_stop=True)
