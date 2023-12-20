@@ -15,8 +15,10 @@ class YRLException(Exception):
 class QualityException(Exception):
     pass
 
+class DownloadException(Exception):
+    pass
 
-def download_youtube(url, quality):
+def download_youtube(url, quality, video_id):
     yt_object = YoutubeIE()
     yt_object.set_downloader(YoutubeDL())
     try:
@@ -24,23 +26,28 @@ def download_youtube(url, quality):
     except Exception:
         raise YRLException
 
-    try:
-        params = [video_quality for video_quality in all_params['formats'] if video_quality['format_note'] == "240p"
-                  or video_quality['format_note'] == "240p60"][0]
-    except Exception:
-        raise QualityException
+    params = [video_quality for video_quality in all_params['formats'] if video_quality['format_note'] == quality
+              or video_quality['format_note'] == f"{quality}60"][0]
 
     sound_params = all_params['formats'][0]
 
-    video = HttpFD(params=params, ydl=YoutubeDL()).real_download(filename='C:/Users/Ghost/OneDrive/Рабочий стол/1.mp4',
-                                                                 info_dict=params)
+    try:
+        video = HttpFD(params=params, ydl=YoutubeDL()).real_download(filename=f'./{video_id}.mp4',
+                                                                     info_dict=params)
 
-    sound = HttpFD(params=sound_params, ydl=YoutubeDL()).real_download(
-        filename='C:/Users/Ghost/OneDrive/Рабочий стол/2.mp3',
-        info_dict=sound_params)
+        sound = HttpFD(params=sound_params, ydl=YoutubeDL()).real_download(
+            filename=f'./{video_id}.mp3',
+            info_dict=sound_params)
 
-    video = VideoFileClip('C:/Users/Ghost/OneDrive/Рабочий стол/1.mp4')
-    audio = AudioFileClip('C:/Users/Ghost/OneDrive/Рабочий стол/2.mp3')
+        video = VideoFileClip(f'./{video_id}.mp4')
+        audio = AudioFileClip(f'./{video_id}.mp3')
 
-    final_clip = video.set_audio(audio)
-    final_clip.write_videofile('final.mp4')
+        final_clip = video.set_audio(audio)
+        final_clip.write_videofile(f'./{video_id}_final.mp4')
+
+        os.remove(f'./{video_id}.mp4')
+        os.remove(f'./{video_id}.mp3')
+
+    except Exception:
+        raise DownloadException
+

@@ -1,106 +1,85 @@
+import uuid
+
 import telebot
 from telebot.types import *
-from download_yotube_video import download_youtube, YRLException
+from download_yotube_video import download_youtube, YRLException, DownloadException
+from telegram_bot.get_qualities import get_qualities
+from telegram_bot.parse_url import parse_url
 
 logging.basicConfig(level=logging.INFO)
 
 bot = telebot.TeleBot("6922410100:AAFTsqJ3c6qTCmxl8mXY1NDCBpi27vYXrlI")
-callback_data = ''
+CALLBACK_DATA = ''
+CURRENT_URL = ''
 
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, "Привет! Я бот, с помощью которого ты можешь "
-                                      "сохранять видео и прочие материалы с разных платформ\n\n"
-                                      "Доступные платформы: Youtube, Instagram, VK, TikTok")
+def download_video(chat_id, quality, url):
+    try:
+        video_id = uuid.uuid4()
 
-    create_choice_message(message)
+        download_youtube(url=url, quality=quality, video_id=video_id)
+        bot.send_video(chat_id,
+                       video=InputFile(f"./{video_id}_final.mp4"),
+                       caption='Готово')
 
+        os.remove(f"./{video_id}_final.mp4")
 
-def create_choice_message(message):
-    button = InlineKeyboardMarkup()
-    btn1 = InlineKeyboardButton("Скачать видео с Youtube", callback_data="download_youtube")
-    btn2 = InlineKeyboardButton("Скачать видео из Instagram", callback_data="download_instagram")
-    btn3 = InlineKeyboardButton("Скачать видео из VK", callback_data="download_vk")
-    btn4 = InlineKeyboardButton("Скачать видео из TikTok", callback_data="download_tiktok")
+    except YRLException:
+        bot.send_message(chat_id, f"Ошибка. Некорректная ссылка - {url}\n"
+                                          f"Введите корректную ссылку:")
 
-    button.row(btn1)
-    button.row(btn2)
-    button.row(btn3)
-    button.row(btn4)
-
-    bot.send_photo(message.chat.id, InputFile("choice_window.jpg"), caption="Выбери платформу:", reply_markup=button)
+    except DownloadException:
+        bot.send_message(chat_id, f"Ошибка при скачивании видео - {url}\n"
+                                  f"Попробуйте повторить попытку, или попытайтесь скачать позже")
 
 
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_message(callback):
-    global callback_data
-    if callback.data == "start":
-        start(callback.message)
-    if callback.data == 'choice_message':
-        create_choice_message(callback.message)
-    else:
-        callback_data = callback.data
-        bot.send_message(callback.message.chat.id, "Хорошо, а теперь вставь ссылку")
-
-        print_message(callback.message)
-
-
-def print_message(callback):
-    pass
-    # print(callback)
+    global CALLBACK_DATA
+    global CURRENT_URL
+    if 'download_video' in callback.data:
+        quality = callback.data.split(" | ")[1]
+        download_video(callback.message.chat.id, quality, CURRENT_URL)
+        CURRENT_URL = ''
 
 
 @bot.message_handler(content_types=['text'])
 def how_many(message):
-    global callback_data
-    if callback_data:
-        if callback_data == 'download_youtube':
-            try:
-                button = InlineKeyboardMarkup()
-                btn = InlineKeyboardButton("Скачать еще", callback_data='choice_message')
+    global CALLBACK_DATA
+    global CURRENT_URL
+    CALLBACK_DATA = parse_url(message.text)
+    print(message.text)
+    if CALLBACK_DATA == 'download_youtube':
+        try:
+            qualities = get_qualities(message.text)
+
+            CURRENT_URL = message.text
+
+            button = InlineKeyboardMarkup()
+
+            for quality in qualities:
+                btn = InlineKeyboardButton(quality, callback_data=f"download_video | {quality}")
                 button.row(btn)
+            bot.send_message(message.chat.id, 'Выбери качество', reply_markup=button)
 
-                bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
-                download_youtube(url=message.text, quality='1080')
-                bot.send_video(message.chat.id,
-                               video=InputFile(os.getcwd() + "\\final.mp4"),
-                               caption='Готово',
-                               reply_markup=button)
+        except YRLException:
+            bot.send_message(message.chat.id, f"Ошибка. Некорректная ссылка - {message.text}\n"
+                                              f"Введите корректную ссылку:")
 
-                callback_data = ''
-            except YRLException:
-                bot.send_message(message.chat.id, f"Ошибка. Некорректная ссылка - {message.text}\n"
-                                                  f"Введите корректную ссылку:")
+    elif CALLBACK_DATA == 'download_instagram':
+        bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
+        bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
+        bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
 
-        elif callback_data == 'download_instagram':
-            bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
-            bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
-            bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
-            create_choice_message(message)
+    elif CALLBACK_DATA == 'download_vk':
+        bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
+        bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
+        bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
 
-            callback_data = ''
-
-        elif callback_data == 'download_vk':
-            bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
-            bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
-            bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
-            create_choice_message(message)
-
-            callback_data = ''
-
-        elif callback_data == 'download_tiktok':
-            bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
-            bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
-            bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
-            create_choice_message(message)
-
-            callback_data = ''
-
-    else:
-        bot.send_message(message.chat.id, text='Выберите платформу, бот работает через интерфейс.')
-
-        create_choice_message(message)
+    elif CALLBACK_DATA == 'download_tiktok':
+        bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
+        bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
+        bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
 
 
 bot.polling(none_stop=True)
