@@ -1,23 +1,27 @@
 import uuid
-
+import os
+import logging
+import asyncio
 import telebot
-from telebot.types import *
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 from download_yotube_video import download_youtube, YRLException, DownloadException
 from telegram_bot.get_qualities import get_qualities
 from telegram_bot.parse_url import parse_url
+from telebot import apihelper
 
 logging.basicConfig(level=logging.INFO)
 
+apihelper.API_URL = "http://188.234.213.32:8081/bot{0}/{1}"
 bot = telebot.TeleBot("6922410100:AAFTsqJ3c6qTCmxl8mXY1NDCBpi27vYXrlI")
 CALLBACK_DATA = ''
 CURRENT_URL = ''
 
 
-def download_video(chat_id, quality, url):
+async def download_video(chat_id, quality, url):
     try:
         video_id = uuid.uuid4()
 
-        download_youtube(url=url, quality=quality, video_id=video_id)
+        await download_youtube(url=url, quality=quality, video_id=video_id)
         bot.send_video(chat_id,
                        video=InputFile(f"./{video_id}_final.mp4"),
                        caption='Готово')
@@ -82,4 +86,9 @@ def how_many(message):
         bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
 
 
-bot.polling(none_stop=True)
+def run_bot():
+    bot.polling(none_stop=True)
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_bot())
