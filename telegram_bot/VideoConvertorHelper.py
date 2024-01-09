@@ -46,18 +46,16 @@ async def callback_message(callback):
     global CALLBACK_DATA
     global CURRENT_URL
     if 'download_video' in callback.data:
-        print("AAAA")
         quality = callback.data.split(" | ")[1]
         await download_video(callback.message.chat.id, quality, CURRENT_URL)
         CURRENT_URL = ''
 
 
 @dp.message()
-async def how_many(message):
+async def main_handler(message):
     global CALLBACK_DATA
     global CURRENT_URL
     CALLBACK_DATA = parse_url(message.text)
-    print(message.text)
     if CALLBACK_DATA == 'download_youtube':
         try:
             qualities = await get_qualities(message.text)
@@ -92,6 +90,8 @@ async def how_many(message):
         await bot.send_message(message.chat.id, f"Скачиваем видео: {message.text}")
         await bot.send_message(message.chat.id, message.from_user)  # Суда функцию по скачиванию ютуб
         await bot.send_message(message.chat.id, "Готово")  # Суда файл, или че там
+    else:
+        await bot.send_message(message.chat.id, f"Не удается найти видео по ссылке: {message.text}\nПопробуйте еще раз")
 
 
 async def main():

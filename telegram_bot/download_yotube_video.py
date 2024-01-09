@@ -1,10 +1,8 @@
 import os
-import asyncio
 from yt_dl.youtube_dl.extractor import YoutubeIE
 from yt_dl.youtube_dl.downloader.http import HttpFD
 from yt_dl.youtube_dl import YoutubeDL
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
-
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 
 class YRLException(Exception):
@@ -13,6 +11,7 @@ class YRLException(Exception):
 
 class QualityException(Exception):
     pass
+
 
 class DownloadException(Exception):
     pass
